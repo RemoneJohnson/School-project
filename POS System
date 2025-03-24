@@ -1,0 +1,295 @@
+# ======================
+# 1. PRODUCT MANAGEMENT
+# ======================
+
+# This is the list of products the store sells, with their prices and how many are in stock.
+product_catalog = {
+    # Electronics
+    "Smartphone": {"price": 45000, "stock": 10},  # A high-end smartphone
+    "Laptop": {"price": 80000, "stock": 8},        # A mid-range laptop
+    "Headphones": {"price": 5000, "stock": 15},    # Wireless headphones
+    "Smartwatch": {"price": 12000, "stock": 12},   # A fitness smartwatch
+    "Tablet": {"price": 30000, "stock": 10},       # A 10-inch tablet
+
+    # Appliances
+    "Refrigerator": {"price": 120000, "stock": 5}, # A large fridge
+    "Microwave": {"price": 15000, "stock": 7},     # A standard microwave
+    "Blender": {"price": 8000, "stock": 10},       # A high-speed blender
+    "Air Conditioner": {"price": 90000, "stock": 6}, # A split AC unit
+    "Washing Machine": {"price": 75000, "stock": 4}, # A front-load washer
+
+    # Groceries
+    "Milk": {"price": 600, "stock": 20},          # 1L of milk
+    "Bread": {"price": 250, "stock": 30},         # 1 loaf of bread
+    "Eggs": {"price": 400, "stock": 25},          # 1 dozen eggs
+    "Rice": {"price": 300, "stock": 40},          # 1kg of rice
+    "Pasta": {"price": 200, "stock": 35},         # 500g of pasta
+    "Chicken": {"price": 1200, "stock": 50},      # 1kg of chicken
+
+    # Household Items
+    "Laundry Detergent": {"price": 1500, "stock": 15}, # 5L detergent
+    "Toilet Paper": {"price": 800, "stock": 50},       # 12-pack toilet paper
+    "Dish Soap": {"price": 500, "stock": 20},          # 1L dish soap
+    "Trash Bags": {"price": 600, "stock": 25},         # 30-pack trash bags
+    "Paper Towels": {"price": 700, "stock": 30},       # 6-pack paper towels
+}
+
+# This is where the items the customer picks will be stored.
+shopping_cart = {}  # It starts empty because no items have been added yet.
+
+# These are the tax rate, discount threshold, and discount rate.
+TAX_RATE = 0.10  # 10% tax
+DISCOUNT_THRESHOLD = 20000.00  # If the total is over J$20,000, a discount is applied.
+DISCOUNT_RATE = 0.05  # 5% discount
+
+
+# Function to show the product catalog
+def display_catalog():
+    """
+    This function shows all the products, their prices, and how many are in stock.
+    """
+    print("\n--- Product Catalog ---")
+    for product, details in product_catalog.items():  # Loop through each product
+        print(f"{product}: J${details['price']} (Stock: {details['stock']})")  # Print the product details
+    print("-----------------------------")
+
+
+# ===========================
+# 2. SHOPPING CART OPERATIONS
+# ===========================
+
+# Function to add items to the cart
+def add_to_cart():
+    """
+    This function lets the customer add items to their cart.
+    """
+    display_catalog()  # Show the catalog first
+    product = input("Enter the product name: ").strip()  # Ask for the product name
+
+    # Check if the product is in the catalog
+    if product not in product_catalog:
+        print("Invalid product name. Please try again.")
+        return
+
+    quantity = int(input("Enter the quantity: "))  # Ask for the quantity
+
+    # Check if the quantity is valid
+    if quantity <= 0:
+        print("Quantity must be greater than 0.")
+        return
+
+    # Check if there's enough stock
+    if product_catalog[product]["stock"] < quantity:
+        print(f"Insufficient stock. Only {product_catalog[product]['stock']} available.")
+        return
+
+    # Add the product to the cart or update the quantity if it's already there
+    if product in shopping_cart:
+        shopping_cart[product] += quantity
+    else:
+        shopping_cart[product] = quantity
+
+    # Update the stock after adding to the cart
+    product_catalog[product]["stock"] -= quantity
+    print(f"{quantity} {product}(s) added to cart.")
+
+
+# Function to remove items from the cart
+def remove_from_cart():
+    """
+    This function lets the customer remove items from their cart.
+    """
+    if not shopping_cart:  # Check if the cart is empty
+        print("Your cart is empty.")
+        return
+
+    print("\n--- Your Cart ---")
+    for product, quantity in shopping_cart.items():  # Show the items in the cart
+        print(f"{product}: {quantity}")
+
+    product = input("Enter the product name to remove: ").strip()  # Ask for the product name
+
+    # Check if the product is in the cart
+    if product not in shopping_cart:
+        print("Product not found in cart.")
+        return
+
+    quantity = int(input("Enter the quantity to remove: "))  # Ask for the quantity to remove
+
+    # Check if the quantity is valid
+    if quantity <= 0:
+        print("Quantity must be greater than 0.")
+        return
+
+    # Check if the quantity to remove is more than what's in the cart
+    if quantity > shopping_cart[product]:
+        print(f"Cannot remove more than {shopping_cart[product]} {product}(s).")
+        return
+
+    # Remove the item from the cart and update the stock
+    shopping_cart[product] -= quantity
+    product_catalog[product]["stock"] += quantity
+
+    # If the quantity becomes zero, remove the product from the cart
+    if shopping_cart[product] == 0:
+        del shopping_cart[product]
+
+    print(f"{quantity} {product}(s) removed from cart.")
+
+
+# Function to view the cart
+def view_cart():
+    """
+    This function shows the items in the cart and calculates the subtotal.
+    """
+    if not shopping_cart:  # Check if the cart is empty
+        print("Your cart is empty.")
+        return
+
+    print("\n--- Your Cart ---")
+    subtotal = 0
+    for product, quantity in shopping_cart.items():  # Loop through the items in the cart
+        price = product_catalog[product]["price"]
+        total_price = price * quantity
+        subtotal += total_price
+        print(f"{product}: {quantity} x J${price} = J${total_price}")
+    print(f"Subtotal: J${subtotal}")
+    print("------------------")
+
+
+# =================================
+# 3. CHECKOUT & PAYMENT PROCESSING
+# =================================
+
+# Function to calculate the total bill
+def calculate_total():
+    """
+    This function calculates the subtotal, tax, and total amount.
+    """
+    subtotal = sum(
+        product_catalog[product]["price"] * quantity
+        for product, quantity in shopping_cart.items()
+    )
+    tax = subtotal * TAX_RATE
+    total = subtotal + tax
+
+    # Apply a discount if the total is over the threshold
+    if total > DISCOUNT_THRESHOLD:
+        discount = total * DISCOUNT_RATE
+        total -= discount
+        print(f"Discount applied: J${discount:.2f}")
+
+    print(f"\nSubtotal: J${subtotal:.2f}")
+    print(f"Tax (10%): J${tax:.2f}")
+    print(f"Total: J${total:.2f}")
+    return total
+
+
+# Function to process payment
+def process_payment():
+    """
+    This function handles the payment and calculates the change.
+    """
+    total = calculate_total()
+    while True:
+        try:
+            amount = float(input("Enter the amount received: J$"))  # Ask for the payment amount
+            if amount < total:
+                print("Insufficient payment. Please provide more funds.")
+            else:
+                change = amount - total
+                print(f"Payment accepted. Change: J${change:.2f}")
+                generate_receipt(total, amount, change)
+                break
+        except ValueError:
+            print("Invalid input. Please enter a valid amount.")
+
+
+# ======================
+# 4. RECEIPT GENERATION
+# ======================
+
+# Function to generate a receipt
+def generate_receipt(total, amount_paid, change):
+    """
+    This function prints a receipt with all the details of the purchase.
+    """
+    print("\n--- Best Buy Retail Store ---")
+    print("--- Receipt ---")
+    for product, quantity in shopping_cart.items():  # Loop through the items in the cart
+        price = product_catalog[product]["price"]
+        total_price = price * quantity
+        print(f"{product}: {quantity} x J${price} = J${total_price}")
+    print("----------------------------")
+    print(f"Subtotal: J${sum(product_catalog[product]['price'] * quantity for product, quantity in shopping_cart.items()):.2f}")
+    print(f"Tax (10%): J${total * TAX_RATE:.2f}")  # .2f set the floating point to 2 decimal places
+    print(f"Total: J${total:.2f}") 
+    print(f"Amount Paid: J${amount_paid:.2f}")
+    print(f"Change: J${change:.2f}")
+    print("Thank you for shopping with us!")
+    print("----------------------------")
+    shopping_cart.clear()  # Clear the cart after the purchase
+
+
+# =========================
+# 5. ADDITIONAL FUNCTIONALITY
+# =========================
+
+# Function to check for low stock alerts
+def check_low_stock():
+    """
+    This function checks if any product is running low on stock and alerts the user.
+    """
+    low_stock_products = [
+        product for product, details in product_catalog.items() if details["stock"] < 5
+    ]
+    if low_stock_products:
+        print("\n--- Low Stock Alert ---")
+        for product in low_stock_products:
+            print(f"{product}: {product_catalog[product]['stock']} remaining")
+        print("-----------------------")
+
+
+# ======================
+# 6. MAIN MENU FUNCTION
+# ======================
+
+# Main menu function
+def main_menu():
+    """
+    This function displays the main menu and lets the user choose what to do.
+    """
+    while True:
+        print("\n--- Best Buy Retail Store POS System ---")
+        print("1. View Product Catalog")
+        print("2. Add Item to Cart")
+        print("3. Remove Item from Cart")
+        print("4. View Cart")
+        print("5. Checkout")
+        print("6. Exit")
+        choice = input("Enter your choice: ").strip()
+
+        if choice == "1":
+            display_catalog()
+        elif choice == "2":
+            add_to_cart()
+        elif choice == "3":
+            remove_from_cart()
+        elif choice == "4":
+            view_cart()
+        elif choice == "5":
+            if not shopping_cart:
+                print("Your cart is empty. Add items to proceed to checkout.")
+            else:
+                process_payment()
+                check_low_stock()
+        elif choice == "6":
+            print("Exiting the system. Thank you!")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+
+# Run the program
+if __name__ == "__main__":
+    main_menu()
